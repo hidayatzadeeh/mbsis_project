@@ -1,0 +1,25 @@
+﻿{% extends "base.html" %}
+{% block title %}Bilanco{% endblock %}
+
+{% block content %}
+<h1>Bilanco {{ year }}</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Kod</th>
+      <th>Hesap</th>
+      <th>Tutar</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in data.assets %}
+    <tr>
+      <td>{{ a.code }}</td>
+      <td>{{ a.name }}</td>
+      <td class="amount">{{ a.balance }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

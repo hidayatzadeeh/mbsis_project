@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Mizan{% endblock %}
+
+{% block content %}
+
+<div class="pageHead">
+  <div>
+    <h1 class="title">Mizan</h1>
+    <p class="subtitle">Hesap bazinda borc, alacak ve bakiye</p>
+  </div>
+
+  <div class="row" style="justify-content:flex-end; flex:1;">
+    <a class="btn btnGhost" href="/">Hesap Plani</a>
+    <a class="btn btnPrimary" href="/journal/">Yevmiye</a>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:14px;">
+  <div class="cardHeader">
+    <h2>FILITRE</h2>
+    <span class="badge" id="mizanSummary">Filtre: ozel aralik</span>
+  </div>
+  <div class="cardBody">
+    <form id="mizanFilterForm" method="get" class="row" style="align-items:flex-end;">
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:220px;">
+        <div class="muted" style="font-size:12px;">Baslangic Tarihi</div>
+        <input type="date" id="mizanStart" name="start" value="{{ start }}"
+               style="padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.04); color:var(--text);" />
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:220px;">
+        <div class="muted" style="font-size:12px;">Bitis Tarihi</div>
+        <input type="date" id="mizanEnd" name="end" value="{{ end }}"
+               style="padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.04); color:var(--text);" />
+      </div>
+
+      <div class="row">
+        <button type="submit" class="btn btnPrimary">Filtrele</button>
+        <a href="{% url 'mizan' %}" class="btn btnGhost">Sifirla</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="cardHeader">
+    <h2>OZET VE TABLO</h2>
+  </div>
+
+  <div class="cardBody">
+    <div class="stats" style="margin-bottom:12px;">
+      <div class="stat">
+        <div class="k">Toplam Borc</div>
+        <div class="v mono">{{ total_debit }}</div>
+      </div>
+      <div class="stat">
+        <div class="k">Toplam Alacak</div>
+        <div class="v mono">{{ total_credit }}</div>
+      </div>
+      <div class="stat">
+        <div class="k">Net Bakiye</div>
+        <div class="v mono">{{ total_balance }}</div>
+      </div>
+      <div class="stat">
+        <div class="k">Durum</div>
+        <div class="v">
+          {% if total_debit == total_credit %}
+            <span class="badge badgeOk">Dengeli</span>
+          {% else %}
+            <span class="badge badgeBad">Dengesiz</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:160px;">Hesap Kodu</th>
+            <th>Hesap Adi</th>
+            <th style="width:170px; text-align:right;">Toplam Borc</th>
+            <th style="width:170px; text-align:right;">Toplam Alacak</th>
+            <th style="width:170px; text-align:right;">Bakiye</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+            <tr>
+              <td class="mono">{{ r.code }}</td>
+              <td>{{ r.name }}</td>
+              <td class="amount">{{ r.debit }}</td>
+              <td class="amount">{{ r.credit }}</td>
+              <td class="amount">{{ r.balance }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="muted" style="text-align:center; padding:18px;">
+                Secilen aralikta kayit yok.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const startInput = document.getElementById('mizanStart');
+    const endInput = document.getElementById('mizanEnd');
+    const summary = document.getElementById('mizanSummary');
+
+    function updateSummary(){
+      const s = startInput.value || '';
+      const e = endInput.value || '';
+      if (!s && !e) summary.textContent = 'Filtre: tum kayitlar';
+      else if (s && e) summary.textContent = 'Filtre: ' + s + ' - ' + e;
+      else if (s) summary.textContent = 'Filtre: ' + s + ' - ...';
+      else summary.textContent = 'Filtre: ... - ' + e;
+    }
+
+    startInput.addEventListener('change', updateSummary);
+    endInput.addEventListener('change', updateSummary);
+    updateSummary();
+  })();
+</script>
+
+{% endblock %}

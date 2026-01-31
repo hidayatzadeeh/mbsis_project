@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}BilanГ§o {{ year }}{% endblock %}
+
+{% block content %}
+
+<h1>BilanГ§o вЂ“ {{ year }}</h1>
+
+<style>
+    h1, h2, h3 { margin-bottom: 0.4rem; margin-top: 1.2rem; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; }
+    th, td { border: 1px solid #e5e7eb; padding: 8px 10px; font-size: 14px; }
+    th { background:#f8fafc; text-align:left; font-weight:700; }
+    td.amount { text-align:right; }
+    .net-result { background:#fff7d6; }
+    .net-result td { font-weight:bold; }
+    .totals-row th { background:#d0d0d0; }
+    .center { text-align:center; margin-top:10px; }
+</style>
+
+<h2>VARLIKLAR</h2>
+
+<h3>DГ¶nen VarlД±klar (1xx)</h3>
+<table>
+  <tr><th>Kod</th><th>Hesap AdД±</th><th>Tutar</th></tr>
+  {% for acc in data.assets %}
+    {% if acc.code|slice:":1" == "1" %}
+    <tr>
+      <td>{{ acc.code }}</td>
+      <td>{{ acc.name }}</td>
+      <td class="amount">{{ acc.balance }}</td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+</table>
+
+<h3>Duran VarlД±klar (2xx)</h3>
+<table>
+  <tr><th>Kod</th><th>Hesap AdД±</th><th>Tutar</th></tr>
+  {% for acc in data.assets %}
+    {% if acc.code|slice:":1" == "2" %}
+    <tr>
+      <td>{{ acc.code }}</td>
+      <td>{{ acc.name }}</td>
+      <td class="amount">{{ acc.balance }}</td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+  <tr class="totals-row">
+    <th colspan="2">Toplam VarlД±klar</th>
+    <th class="amount">{{ data.total_assets }}</th>
+  </tr>
+</table>
+
+<h2>BORГ‡LAR VE Г–Z KAYNAKLAR</h2>
+
+<h3>KД±sa Vadeli YГјkГјmlГјlГјkler (3xx)</h3>
+<table>
+  <tr><th>Kod</th><th>Hesap AdД±</th><th>Tutar</th></tr>
+  {% for acc in data.liabilities %}
+    {% if acc.code|slice:":1" == "3" %}
+    <tr>
+      <td>{{ acc.code }}</td>
+      <td>{{ acc.name }}</td>
+      <td class="amount">{{ acc.balance }}</td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+</table>
+
+<h3>Uzun Vadeli YГјkГјmlГјlГјkler (4xx)</h3>
+<table>
+  <tr><th>Kod</th><th>Hesap AdД±</th><th>Tutar</th></tr>
+  {% for acc in data.liabilities %}
+    {% if acc.code|slice:":1" == "4" %}
+    <tr>
+      <td>{{ acc.code }}</td>
+      <td>{{ acc.name }}</td>
+      <td class="amount">{{ acc.balance }}</td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+</table>
+
+<h3>Г–z Kaynaklar</h3>
+<table>
+  <tr><th>Kod</th><th>Hesap AdД±</th><th>Tutar</th></tr>
+  {% for acc in data.equities %}
+    {% if acc.code == "DNET" %}
+    <tr class="net-result">
+      <td>DNET</td>
+      <td>DГ¶nem Net KГўr/ZararД±</td>
+      <td class="amount">{{ data.net_result }}</td>
+    </tr>
+    {% else %}
+    <tr>
+      <td>{{ acc.code }}</td>
+      <td>{{ acc.name }}</td>
+      <td class="amount">{{ acc.balance }}</td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+  <tr class="totals-row">
+    <th colspan="2">Toplam BorГ§lar + Г–z Kaynaklar</th>
+    <th class="amount">{{ data.total_liabilities_equity }}</th>
+  </tr>
+</table>
+
+<p class="center">
+  {% if data.match %}
+    <strong>VarlД±klar = Kaynaklar (DENGELД°)</strong>
+  {% else %}
+    <strong style="color:red;">DENGESД°Z!</strong>
+  {% endif %}
+</p>
+
+{% endblock %}

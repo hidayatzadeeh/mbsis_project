@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Mizan{% endblock %}
+
+{% block content %}
+
+<style>
+  .filter-bar{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .filter-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .chips{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .chip{
+    padding:5px 10px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(15,23,42,.9);
+    color:var(--muted);
+    font-size:11px;
+    cursor:pointer;
+  }
+  .chip-active{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+    color:var(--accent-strong);
+    box-shadow:0 0 0 1px rgba(56,189,248,.35);
+  }
+  .filter-dates{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:flex-end;
+  }
+  .filter-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .filter-field label{
+    font-size:11px;
+    color:var(--muted);
+  }
+  .filter-field input[type="date"]{
+    background:#020617;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:6px 8px;
+    color:var(--text);
+    font-size:13px;
+    min-width:170px;
+  }
+  .filter-actions{
+    display:flex;
+    gap:8px;
+    padding-top:18px;
+  }
+  .btn-main{
+    background:var(--accent);
+    border:none;
+    color:#fff;
+    padding:7px 14px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    text-decoration:none;
+  }
+  .btn-ghost{
+    padding:7px 12px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    font-size:12px;
+    color:var(--muted);
+    text-decoration:none;
+    background:transparent;
+  }
+  .btn-ghost:hover{
+    border-color:var(--accent);
+    color:var(--accent-strong);
+  }
+  .filter-summary{
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  .mini-panel{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:10px;
+  }
+  .mini-card{
+    flex:0 0 auto;
+    min-width:160px;
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid rgba(148,163,184,.35);
+    background:rgba(15,23,42,.85);
+  }
+  .mini-label{
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:3px;
+  }
+  .mini-value{
+    font-size:15px;
+    font-weight:600;
+  }
+</style>
+
+<h1>Mizan</h1>
+<p class="sub">Hesap bazД±nda borГ§, alacak ve bakiye</p>
+
+<div class="card" style="margin-bottom:16px;">
+  <form id="mizanFilterForm" method="get" class="filter-bar">
+    <div class="filter-top">
+      <div class="chips">
+        <button type="button" class="chip" data-mode="all" id="mChipAll">TГјmГј</button>
+        <button type="button" class="chip" data-mode="this_year" id="mChipThisYear">Bu YД±l</button>
+        <button type="button" class="chip" data-mode="this_month" id="mChipThisMonth">Bu Ay</button>
+        <button type="button" class="chip" data-mode="custom" id="mChipCustom">Г–zel AralД±k</button>
+      </div>
+      <div class="filter-summary" id="mizanSummary"></div>
+    </div>
+
+    <div class="filter-dates" id="mizanDatesRow">
+      <div class="filter-field">
+        <label for="mizanStart">BaЕџlangД±Г§ Tarihi</label>
+        <input
+          type="date"
+          id="mizanStart"
+          name="start"
+          value="{{ start }}">
+      </div>
+      <div class="filter-field">
+        <label for="mizanEnd">BitiЕџ Tarihi</label>
+        <input
+          type="date"
+          id="mizanEnd"
+          name="end"
+          value="{{ end }}">
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn-main">Filtrele</button>
+        <a href="{% url 'mizan' %}" class="btn-ghost">SД±fД±rla</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="mini-panel">
+    <div class="mini-card">
+      <div class="mini-label">Toplam BorГ§</div>
+      <div class="mini-value">{{ total_debit }}</div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-label">Toplam Alacak</div>
+      <div class="mini-value">{{ total_credit }}</div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-label">Net Bakiye</div>
+      <div class="mini-value">{{ total_balance }}</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Hesap Kodu</th>
+        <th>Hesap AdД±</th>
+        <th>Toplam BorГ§</th>
+        <th>Toplam Alacak</th>
+        <th>Bakiye</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.code }}</td>
+        <td>{{ r.name }}</td>
+        <td class="amount">{{ r.debit }}</td>
+        <td class="amount">{{ r.credit }}</td>
+        <td class="amount">{{ r.balance }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="text-align:center; color:var(--muted);">
+          SeГ§ilen aralД±kta kayД±t yok.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  (function () {
+    const form = document.getElementById('mizanFilterForm');
+    const startInput = document.getElementById('mizanStart');
+    const endInput = document.getElementById('mizanEnd');
+    const summary = document.getElementById('mizanSummary');
+    const datesRow = document.getElementById('mizanDatesRow');
+
+    const chips = [
+      document.getElementById('mChipAll'),
+      document.getElementById('mChipThisYear'),
+      document.getElementById('mChipThisMonth'),
+      document.getElementById('mChipCustom'),
+    ];
+
+    function fmt(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + d;
+    }
+
+    function setActive(mode) {
+      chips.forEach(ch => {
+        if (ch.dataset.mode === mode) ch.classList.add('chip-active');
+        else ch.classList.remove('chip-active');
+      });
+
+      if (mode === 'custom') {
+        datesRow.style.display = 'flex';
+      } else {
+        datesRow.style.display = 'none';
+      }
+
+      const s = startInput.value;
+      const e = endInput.value;
+      if (!s && !e && mode === 'all') {
+        summary.textContent = 'Filtre: TГјm kayД±tlar';
+      } else if (mode === 'this_month') {
+        summary.textContent = 'Filtre: Bu ay';
+      } else if (mode === 'this_year') {
+        summary.textContent = 'Filtre: Bu yД±l';
+      } else if (mode === 'custom') {
+        summary.textContent = 'Filtre: Г–zel aralД±k'
+          + (s ? ' вЂў ' + s : '')
+          + (e ? ' вЂ“ ' + e : '');
+      } else {
+        summary.textContent = '';
+      }
+    }
+
+    function detectInitialMode() {
+      const s = startInput.value;
+      const e = endInput.value;
+      if (!s && !e) return 'all';
+
+      const today = new Date();
+      const ym = today.getFullYear();
+      const m1 = new Date(ym, today.getMonth(), 1);
+      const mLast = new Date(ym, today.getMonth() + 1, 0);
+      const yFirst = ym + '-01-01';
+      const yLast = ym + '-12-31';
+
+      if (s === fmt(m1) && e === fmt(mLast)) return 'this_month';
+      if (s === yFirst && e === yLast) return 'this_year';
+      return 'custom';
+    }
+
+    chips.forEach(ch => {
+      ch.addEventListener('click', function (e) {
+        e.preventDefault();
+        const mode = this.dataset.mode;
+        const today = new Date();
+
+        if (mode === 'all') {
+          startInput.value = '';
+          endInput.value = '';
+          setActive('all');
+          form.submit();
+          return;
+        }
+
+        if (mode === 'this_year') {
+          const first = new Date(today.getFullYear(), 0, 1);
+          const last = new Date(today.getFullYear(), 11, 31);
+          startInput.value = fmt(first);
+          endInput.value = fmt(last);
+          setActive('this_year');
+          form.submit();
+          return;
+        }
+
+        if (mode === 'this_month') {
+          const first = new Date(today.getFullYear(), today.getMonth(), 1);
+          const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          startInput.value = fmt(first);
+          endInput.value = fmt(last);
+          setActive('this_month');
+          form.submit();
+          return;
+        }
+
+        if (mode === 'custom') {
+          setActive('custom');
+        }
+      });
+    });
+
+    const initialMode = detectInitialMode();
+    setActive(initialMode);
+  })();
+</script>
+
+{% endblock %}

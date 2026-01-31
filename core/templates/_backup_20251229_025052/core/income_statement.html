@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Gelir Tablosu {{ year }}{% endblock %}
+
+{% block content %}
+
+<h1>Gelir Tablosu вЂ“ {{ year }}</h1>
+<p class="sub">DГ¶nem iГ§indeki gelir ve giderlerin Г¶zeti</p>
+
+<div class="card">
+  <h2 style="margin-top:0; font-size:16px;">Gelirler (6xx)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Hesap Kodu</th>
+        <th>Hesap AdД±</th>
+        <th>Tutar</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in data.incomes %}
+      <tr>
+        <td>{{ row.code }}</td>
+        <td>{{ row.name }}</td>
+        <td class="amount">{{ row.amount }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" style="text-align:center; color:var(--muted);">
+          Bu dГ¶nemde gelir kaydД± bulunmamaktadД±r.
+        </td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <th colspan="2">Toplam Gelir</th>
+        <th class="amount">{{ data.total_income }}</th>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0; font-size:16px;">Giderler (7xx)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Hesap Kodu</th>
+        <th>Hesap AdД±</th>
+        <th>Tutar</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in data.expenses %}
+      <tr>
+        <td>{{ row.code }}</td>
+        <td>{{ row.name }}</td>
+        <td class="amount">{{ row.amount }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" style="text-align:center; color:var(--muted);">
+          Bu dГ¶nemde gider kaydД± bulunmamaktadД±r.
+        </td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <th colspan="2">Toplam Gider</th>
+        <th class="amount">{{ data.total_expense }}</th>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card" style="border-color:rgba(34,197,94,.6);">
+  <h2 style="margin-top:0; font-size:16px;">DГ¶nem Net Sonucu</h2>
+  <p style="font-size:14px;">
+    {% if data.is_profit %}
+      <strong>Net DГ¶nem KГўrД±:</strong>
+      <span style="color:#4ade80; font-weight:700;">{{ data.net_result }}</span>
+    {% else %}
+      <strong>Net DГ¶nem ZararД±:</strong>
+      <span style="color:#f97373; font-weight:700;">{{ data.net_result }}</span>
+    {% endif %}
+  </p>
+</div>
+
+{% endblock %}

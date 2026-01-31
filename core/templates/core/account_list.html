@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Hesap Plani{% endblock %}
+
+{% block content %}
+
+<div class="pageHead">
+  <div>
+    <h1 class="title">Hesap Plani</h1>
+    <p class="subtitle">Sirketinizin hesap kodlari ve adlari</p>
+  </div>
+
+  <div class="row" style="justify-content:flex-end; flex:1;">
+    <a class="btn btnGhost" href="/journal/">Yevmiye</a>
+    <a class="btn btnPrimary" href="/mizan/">Mizan</a>
+    <a class="btn" href="/admin/core/account/add/">Yeni Hesap</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="cardHeader">
+    <h2>ARAMA VE LISTE</h2>
+    <div class="row" style="flex:1; justify-content:flex-end;">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <input id="searchInput" type="text" placeholder="Hesap adi veya kodu ile ara (ornegin 100, banka, kasa)" />
+      </div>
+      <span class="badge" id="countInfo">Toplam: {{ accounts|length }}</span>
+    </div>
+  </div>
+
+  <div class="cardBody">
+    <div class="tableWrap">
+      <table id="accountsTable">
+        <thead>
+          <tr>
+            <th style="width:160px;">Kod</th>
+            <th>Hesap Adi</th>
+          </tr>
+        </thead>
+        <tbody id="accountsBody">
+          {% for a in accounts %}
+            <tr class="rowItem" data-code="{{ a.code|lower }}" data-name="{{ a.name|lower }}">
+              <td class="mono">{{ a.code }}</td>
+              <td>{{ a.name }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="2" class="muted" style="text-align:center; padding:18px;">
+                Henuz hesap yok.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const input = document.getElementById('searchInput');
+    const rows = Array.from(document.querySelectorAll('#accountsBody .rowItem'));
+    const info = document.getElementById('countInfo');
+
+    function render(){
+      const q = (input.value || '').trim().toLowerCase();
+      let shown = 0;
+
+      rows.forEach(tr => {
+        const hit = (tr.dataset.code || '').includes(q) || (tr.dataset.name || '').includes(q);
+        tr.style.display = hit ? '' : 'none';
+        if (hit) shown++;
+      });
+
+      info.textContent = q ? ('Eslesen: ' + shown) : ('Toplam: ' + rows.length);
+    }
+
+    input.addEventListener('input', render);
+    render();
+  })();
+</script>
+
+{% endblock %}

@@ -1,0 +1,31 @@
+﻿{% extends "base.html" %}
+{% block title %}Yevmiye{% endblock %}
+
+{% block content %}
+<h1>Yevmiye Kayitlari</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tarih</th>
+      <th>Aciklama</th>
+      <th>Borc</th>
+      <th>Alacak</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in entries %}
+    <tr>
+      <td>{{ e.date }}</td>
+      <td>{{ e.description }}</td>
+      <td class="amount">{{ e.total_debit }}</td>
+      <td class="amount">{{ e.total_credit }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="4">Kayit yok</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

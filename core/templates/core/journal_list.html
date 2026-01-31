@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Yevmiye Kayitlari{% endblock %}
+
+{% block content %}
+
+<div class="pageHead">
+  <div>
+    <h1 class="title">Yevmiye Kayitlari</h1>
+    <p class="subtitle">Tarih araligina gore yevmiye kayitlari ve toplamlar</p>
+  </div>
+
+  <div class="row" style="justify-content:flex-end; flex:1;">
+    <a href="/admin/core/journalentry/add/" class="btn btnPrimary">Yeni Yevmiye Kaydi</a>
+    <a href="/admin/core/journalentry/" class="btn btnGhost">Admin Listesi</a>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:14px;">
+  <div class="cardHeader">
+    <h2>FILITRE</h2>
+    <span class="badge" id="journalSummary">Filtre: ozel aralik</span>
+  </div>
+  <div class="cardBody">
+    <form id="journalDateFilterForm" method="get" class="row" style="align-items:flex-end;">
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:220px;">
+        <div class="muted" style="font-size:12px;">Baslangic Tarihi</div>
+        <input type="date" id="journalStart" name="start" value="{{ start }}"
+               style="padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.04); color:var(--text);" />
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:6px; min-width:220px;">
+        <div class="muted" style="font-size:12px;">Bitis Tarihi</div>
+        <input type="date" id="journalEnd" name="end" value="{{ end }}"
+               style="padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.04); color:var(--text);" />
+      </div>
+
+      <div class="row">
+        <button type="submit" class="btn btnPrimary">Filtrele</button>
+        <a href="{% url 'journal_list' %}" class="btn btnGhost">Sifirla</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="cardHeader">
+    <h2>OZET VE LISTE</h2>
+    <div class="row" style="justify-content:flex-end;">
+      {% if sum_debit == sum_credit %}
+        <span class="badge badgeOk">Dengeli</span>
+      {% else %}
+        <span class="badge badgeBad">Dengesiz</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="cardBody">
+    <div class="stats" style="margin-bottom:12px;">
+      <div class="stat">
+        <div class="k">Kayit Sayisi</div>
+        <div class="v mono">{{ entries_count }}</div>
+      </div>
+      <div class="stat">
+        <div class="k">Toplam Borc</div>
+        <div class="v mono">{{ sum_debit }}</div>
+      </div>
+      <div class="stat">
+        <div class="k">Toplam Alacak</div>
+        <div class="v mono">{{ sum_credit }}</div>
+      </div>
+      <div class="stat">
+        <div class="k">Denge</div>
+        <div class="v mono">
+          {% if sum_debit == sum_credit %}
+            OK
+          {% else %}
+            {{ sum_debit|floatformat:2 }} / {{ sum_credit|floatformat:2 }}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:140px;">Tarih</th>
+            <th>Aciklama</th>
+            <th style="width:120px;">Durum</th>
+            <th style="width:170px; text-align:right;">Toplam Borc</th>
+            <th style="width:170px; text-align:right;">Toplam Alacak</th>
+            <th style="width:130px;">Islem</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in entries %}
+            <tr>
+              <td class="mono">{{ e.date }}</td>
+              <td>{{ e.description }}</td>
+              <td>
+                {% if e.status == "P" %}
+                  <span class="badge badgeOk">Onayli</span>
+                {% else %}
+                  <span class="badge badgeWarn">Taslak</span>
+                {% endif %}
+              </td>
+              <td class="amount">{{ e.total_debit }}</td>
+              <td class="amount">{{ e.total_credit }}</td>
+              <td>
+                <a href="/admin/core/journalentry/{{ e.id }}/change/" class="btn btnGhost" style="padding:8px 10px; border-radius:14px;">
+                  Duzenle
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="muted" style="text-align:center; padding:18px;">
+                Secilen aralikta yevmiye kaydi yok.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const startInput = document.getElementById('journalStart');
+    const endInput = document.getElementById('journalEnd');
+    const summary = document.getElementById('journalSummary');
+
+    function updateSummary(){
+      const s = startInput.value || '';
+      const e = endInput.value || '';
+      if (!s && !e) summary.textContent = 'Filtre: tum kayitlar';
+      else if (s && e) summary.textContent = 'Filtre: ' + s + ' - ' + e;
+      else if (s) summary.textContent = 'Filtre: ' + s + ' - ...';
+      else summary.textContent = 'Filtre: ... - ' + e;
+    }
+
+    startInput.addEventListener('change', updateSummary);
+    endInput.addEventListener('change', updateSummary);
+    updateSummary();
+  })();
+</script>
+
+{% endblock %}

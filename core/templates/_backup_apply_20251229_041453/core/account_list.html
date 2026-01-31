@@ -1,0 +1,27 @@
+﻿{% extends "base.html" %}
+{% block title %}Hesap Plani{% endblock %}
+
+{% block content %}
+<h1>Hesap Plani</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Kod</th>
+      <th>Hesap Adi</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in accounts %}
+    <tr>
+      <td>{{ a.code }}</td>
+      <td>{{ a.name }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="2">Kayit yok</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

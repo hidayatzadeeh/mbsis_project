@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Hesap Planı{% endblock %}
+
+{% block content %}
+<div class="pageHead">
+  <div>
+    <h1 class="title">Hesap Planı</h1>
+    <p class="subtitle">Şirketinizin hesap kodları ve adları</p>
+  </div>
+
+  <div class="btnRow">
+    <a class="btn" href="/journal/">Yevmiye</a>
+    <a class="btn btn-primary" href="/mizan/">Mizan</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="cardHeader">
+    <h2>Hesap Listesi</h2>
+    <div class="muted" id="countInfo">—</div>
+  </div>
+
+  <div class="cardPad">
+    <div class="search" style="margin-bottom:12px;">
+      <span class="muted">Ara</span>
+      <input id="searchInput" type="text" placeholder="Hesap adı veya kodu (örn: 100, banka, kasa)..." />
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:160px;">Kod</th>
+            <th>Hesap Adı</th>
+          </tr>
+        </thead>
+        <tbody id="accountsBody">
+          {% for a in accounts %}
+          <tr class="row" data-code="{{ a.code|lower }}" data-name="{{ a.name|lower }}">
+            <td class="mono">{{ a.code }}</td>
+            <td>{{ a.name }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="2" class="muted" style="text-align:center;">Henüz hesap yok.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const input = document.getElementById('searchInput');
+  const rows = Array.from(document.querySelectorAll('#accountsBody .row'));
+  const info = document.getElementById('countInfo');
+
+  function render(){
+    const q = (input.value || '').trim().toLowerCase();
+    let shown = 0;
+    rows.forEach(tr => {
+      const hit = (tr.dataset.code || '').includes(q) || (tr.dataset.name || '').includes(q);
+      tr.style.display = hit ? '' : 'none';
+      if(hit) shown++;
+    });
+    info.textContent = q ? Eşleşen hesap:  : Toplam hesap: ;
+  }
+  input.addEventListener('input', render);
+  render();
+})();
+</script>
+{% endblock %}

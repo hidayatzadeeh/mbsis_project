@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Bilanco {{ year }}{% endblock %}
+
+{% block content %}
+
+<div class="pageHead">
+  <div>
+    <h1 class="title">Bilanco {{ year }}</h1>
+    <p class="subtitle">{{ year }} donemi icin varliklar, borclar ve oz kaynaklar</p>
+  </div>
+
+  <div class="row" style="justify-content:flex-end; flex:1;">
+    {% if data.match %}
+      <span class="badge badgeOk">Dengeli</span>
+    {% else %}
+      <span class="badge badgeBad">Dengesiz</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:14px;">
+  <div class="cardHeader">
+    <h2>TOPLAM OZET</h2>
+  </div>
+  <div class="cardBody">
+    <div class="stats">
+      <div class="stat">
+        <div class="k">Toplam Varliklar</div>
+        <div class="v mono">{{ data.total_assets }}</div>
+      </div>
+      <div class="stat">
+        <div class="k">Toplam Borclar + Oz Kaynaklar</div>
+        <div class="v mono">{{ data.total_liabilities_equity }}</div>
+      </div>
+      <div class="stat">
+        <div class="k">Donem Net Sonucu</div>
+        <div class="v mono">{{ data.net_result }}</div>
+      </div>
+      <div class="stat">
+        <div class="k">Kontrol</div>
+        <div class="v">
+          {% if data.match %}
+            <span class="badge badgeOk">Varliklar = Kaynaklar</span>
+          {% else %}
+            <span class="badge badgeBad">Esit degil</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:14px;">
+  <div class="cardHeader">
+    <h2>VARLIKLAR</h2>
+  </div>
+  <div class="cardBody">
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:160px;">Kod</th>
+            <th>Hesap Adi</th>
+            <th style="width:180px; text-align:right;">Tutar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for acc in data.assets %}
+            <tr>
+              <td class="mono">{{ acc.code }}</td>
+              <td>{{ acc.name }}</td>
+              <td class="amount">{{ acc.balance }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="3" class="muted" style="text-align:center; padding:18px;">
+                Varlik kaydi yok.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="cardHeader">
+    <h2>BORCLAR VE OZ KAYNAKLAR</h2>
+  </div>
+  <div class="cardBody">
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:160px;">Kod</th>
+            <th>Hesap Adi</th>
+            <th style="width:180px; text-align:right;">Tutar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for acc in data.liabilities %}
+            <tr>
+              <td class="mono">{{ acc.code }}</td>
+              <td>{{ acc.name }}</td>
+              <td class="amount">{{ acc.balance }}</td>
+            </tr>
+          {% endfor %}
+
+          {% for acc in data.equities %}
+            <tr>
+              <td class="mono">{{ acc.code }}</td>
+              <td>{{ acc.name }}</td>
+              <td class="amount">{{ acc.balance }}</td>
+            </tr>
+          {% endfor %}
+
+          {% if not data.liabilities and not data.equities %}
+            <tr>
+              <td colspan="3" class="muted" style="text-align:center; padding:18px;">
+                Borc veya oz kaynak kaydi yok.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

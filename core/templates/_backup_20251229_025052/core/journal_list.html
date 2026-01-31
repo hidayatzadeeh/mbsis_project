@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Yevmiye KayД±tlarД±{% endblock %}
+
+{% block content %}
+
+<style>
+  .filter-bar{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .filter-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .chips{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .chip{
+    padding:5px 10px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(15,23,42,.9);
+    color:var(--muted);
+    font-size:11px;
+    cursor:pointer;
+  }
+  .chip-active{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+    color:var(--accent-strong);
+    box-shadow:0 0 0 1px rgba(56,189,248,.35);
+  }
+  .filter-dates{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:flex-end;
+  }
+  .filter-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .filter-field label{
+    font-size:11px;
+    color:var(--muted);
+  }
+  .filter-field input[type="date"]{
+    background:#020617;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:6px 8px;
+    color:var(--text);
+    font-size:13px;
+    min-width:170px;
+  }
+  .filter-actions{
+    display:flex;
+    gap:8px;
+    padding-top:18px;
+  }
+  .btn-main{
+    background:var(--accent);
+    border:none;
+    color:#fff;
+    padding:7px 14px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+  }
+  .btn-ghost{
+    padding:7px 12px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    font-size:12px;
+    color:var(--muted);
+    text-decoration:none;
+    background:transparent;
+    display:inline-block;
+  }
+  .btn-ghost:hover{
+    border-color:var(--accent);
+    color:var(--accent-strong);
+  }
+  .btn-xs{
+    padding:4px 8px;
+    font-size:11px;
+  }
+
+  .filter-summary{
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  .mini-panel{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:10px;
+  }
+  .mini-card{
+    flex:0 0 auto;
+    min-width:140px;
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid rgba(148,163,184,.35);
+    background:rgba(15,23,42,.85);
+  }
+  .mini-label{
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:3px;
+  }
+  .mini-value{
+    font-size:15px;
+    font-weight:600;
+  }
+
+  /* Гњst aksiyon barД± (Yeni kayД±t / Admin) */
+  .journal-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+  }
+  .journal-toolbar-right{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+</style>
+
+<h1>Yevmiye KayД±tlarД±</h1>
+<p class="sub">Tarih aralД±ДџД±na gГ¶re yevmiye kayД±tlarД±</p>
+
+<div class="journal-toolbar">
+  <div></div>
+  <div class="journal-toolbar-right">
+    <!-- Yeni kayД±t ekleme (admin) -->
+    <a
+      href="/admin/core/journalentry/add/"
+      class="btn-main">
+      + Yeni Yevmiye KaydД±
+    </a>
+    <!-- TГјm yevmiye kayД±tlarД± admin listesi -->
+    <a
+      href="/admin/core/journalentry/"
+      class="btn-ghost">
+      Admin'de AГ§
+    </a>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px;">
+  <form id="journalDateFilterForm" method="get" class="filter-bar">
+    <div class="filter-top">
+      <div class="chips">
+        <button type="button" class="chip" data-mode="all" id="jChipAll">TГјmГј</button>
+        <button type="button" class="chip" data-mode="this_year" id="jChipThisYear">Bu YД±l</button>
+        <button type="button" class="chip" data-mode="this_month" id="jChipThisMonth">Bu Ay</button>
+        <button type="button" class="chip" data-mode="custom" id="jChipCustom">Г–zel AralД±k</button>
+      </div>
+      <div class="filter-summary" id="journalSummary"></div>
+    </div>
+
+    <div class="filter-dates" id="journalDatesRow">
+      <div class="filter-field">
+        <label for="journalStart">BaЕџlangД±Г§ Tarihi</label>
+        <input
+          type="date"
+          id="journalStart"
+          name="start"
+          value="{{ start }}">
+      </div>
+      <div class="filter-field">
+        <label for="journalEnd">BitiЕџ Tarihi</label>
+        <input
+          type="date"
+          id="journalEnd"
+          name="end"
+          value="{{ end }}">
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn-main">Filtrele</button>
+        <a href="{% url 'journal_list' %}" class="btn-ghost">SД±fД±rla</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <!-- MINI PANEL -->
+  <div class="mini-panel">
+    <div class="mini-card">
+      <div class="mini-label">KayД±t SayД±sД±</div>
+      <div class="mini-value">{{ entries_count }}</div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-label">Toplam BorГ§</div>
+      <div class="mini-value">{{ sum_debit }}</div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-label">Toplam Alacak</div>
+      <div class="mini-value">{{ sum_credit }}</div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-label">Denge</div>
+      <div class="mini-value">
+        {% if sum_debit == sum_credit %}
+          Dengeli
+        {% else %}
+          {{ sum_debit|floatformat:2 }} / {{ sum_credit|floatformat:2 }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tarih</th>
+        <th>AГ§Д±klama</th>
+        <th>Durum</th>
+        <th>Toplam BorГ§</th>
+        <th>Toplam Alacak</th>
+        <th>Д°Еџlem</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in entries %}
+      <tr>
+        <td>{{ e.date }}</td>
+        <td>{{ e.description }}</td>
+        <td>
+          {% if e.status == "P" %}
+            OnaylД±
+          {% else %}
+            Taslak
+          {% endif %}
+        </td>
+        <td class="amount">{{ e.total_debit }}</td>
+        <td class="amount">{{ e.total_credit }}</td>
+        <td>
+          <!-- Tek tek dГјzenleme linki (admin change view) -->
+          <a
+            href="/admin/core/journalentry/{{ e.id }}/change/"
+            class="btn-ghost btn-xs">
+            DГјzenle
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center; color:var(--muted);">
+          SeГ§ilen aralД±kta yevmiye kaydД± yok.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  (function () {
+    const form = document.getElementById('journalDateFilterForm');
+    const startInput = document.getElementById('journalStart');
+    const endInput = document.getElementById('journalEnd');
+    const summary = document.getElementById('journalSummary');
+    const datesRow = document.getElementById('journalDatesRow');
+
+    const chips = [
+      document.getElementById('jChipAll'),
+      document.getElementById('jChipThisYear'),
+      document.getElementById('jChipThisMonth'),
+      document.getElementById('jChipCustom'),
+    ];
+
+    function fmt(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + d;
+    }
+
+    function setActive(mode) {
+      chips.forEach(ch => {
+        if (ch.dataset.mode === mode) ch.classList.add('chip-active');
+        else ch.classList.remove('chip-active');
+      });
+
+      if (mode === 'custom') {
+        datesRow.style.display = 'flex';
+      } else {
+        datesRow.style.display = 'none';
+      }
+
+      const s = startInput.value;
+      const e = endInput.value;
+      if (!s && !e && mode === 'all') {
+        summary.textContent = 'Filtre: TГјm kayД±tlar';
+      } else if (mode === 'this_month') {
+        summary.textContent = 'Filtre: Bu ay';
+      } else if (mode === 'this_year') {
+        summary.textContent = 'Filtre: Bu yД±l';
+      } else if (mode === 'custom') {
+        summary.textContent = 'Filtre: Г–zel aralД±k'
+          + (s ? ' вЂў ' + s : '')
+          + (e ? ' вЂ“ ' + e : '');
+      } else {
+        summary.textContent = '';
+      }
+    }
+
+    function detectInitialMode() {
+      const s = startInput.value;
+      const e = endInput.value;
+      if (!s && !e) return 'all';
+
+      const today = new Date();
+      const ym = today.getFullYear();
+      const m1 = new Date(ym, today.getMonth(), 1);
+      const mLast = new Date(ym, today.getMonth() + 1, 0);
+      const yFirst = ym + '-01-01';
+      const yLast = ym + '-12-31';
+
+      if (s === fmt(m1) && e === fmt(mLast)) return 'this_month';
+      if (s === yFirst && e === yLast) return 'this_year';
+      return 'custom';
+    }
+
+    chips.forEach(ch => {
+      ch.addEventListener('click', function (e) {
+        e.preventDefault();
+        const mode = this.dataset.mode;
+        const today = new Date();
+
+        if (mode === 'all') {
+          startInput.value = '';
+          endInput.value = '';
+          setActive('all');
+          form.submit();
+          return;
+        }
+
+        if (mode === 'this_year') {
+          const first = new Date(today.getFullYear(), 0, 1);
+          const last = new Date(today.getFullYear(), 11, 31);
+          startInput.value = fmt(first);
+          endInput.value = fmt(last);
+          setActive('this_year');
+          form.submit();
+          return;
+        }
+
+        if (mode === 'this_month') {
+          const first = new Date(today.getFullYear(), today.getMonth(), 1);
+          const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          startInput.value = fmt(first);
+          endInput.value = fmt(last);
+          setActive('this_month');
+          form.submit();
+          return;
+        }
+
+        if (mode === 'custom') {
+          setActive('custom');
+        }
+      });
+    });
+
+    const initialMode = detectInitialMode();
+    setActive(initialMode);
+  })();
+</script>
+
+{% endblock %}
